@@ -112,7 +112,7 @@
 
                     enterShell = ''
                                             echo "Starting Rust environment..."
-                      											rust --version
+                      											rustc --version
                       											cargo --version
                                             exercism version
                     '';
