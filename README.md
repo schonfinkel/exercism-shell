@@ -49,4 +49,5 @@ $ exercism submit src/difference_of_squares.erl
 3. F#
 4. Gleam
 5. Haskell
+6. Rust
 
