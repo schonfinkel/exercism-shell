@@ -32,6 +32,7 @@
       perSystem =
         { pkgs, system, ... }:
         let
+          defaultApps = with pkgs; [ exercism ];
 
           # Elixir
           getElixirLibs =
@@ -54,13 +55,6 @@
 
           elixirLibs = getElixirLibs pkgs.elixir-ls;
 
-          # F#
-          dotnet_8 =
-            with pkgs.dotnetCorePackages;
-            combinePackages [
-              sdk_8_0
-            ];
-
           treefmtEval = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
 
         in
@@ -81,13 +75,15 @@
                 (
                   { pkgs, lib, ... }:
                   {
-                    packages = with pkgs; [
-                      rust-analyzer
-                      clippy
-                      rustfmt
-                      cargo-watch
-                      exercism
-                    ];
+                    packages =
+                      with pkgs;
+                      [
+                        rust-analyzer
+                        clippy
+                        rustfmt
+                        cargo-watch
+                      ]
+                      ++ defaultApps;
 
                     languages.rust = {
                       enable = true;
@@ -113,12 +109,15 @@
                 (
                   { pkgs, lib, ... }:
                   {
-                    packages = with pkgs; [
-                      erlang-ls
-                      erlfmt
-                      rebar3
-                      exercism
-                    ];
+                    packages =
+                      with pkgs;
+                      [
+                        erlang-language-platform
+                        erlfmt
+                        rebar3
+                        watchman
+                      ]
+                      ++ defaultApps;
 
                     languages.erlang = {
                       enable = true;
@@ -141,10 +140,12 @@
                 (
                   { pkgs, lib, ... }:
                   {
-                    packages = with pkgs; [
-                      elixir-ls
-                      exercism
-                    ];
+                    packages =
+                      with pkgs;
+                      [
+                        elixir-ls
+                      ]
+                      ++ defaultApps;
 
                     languages.elixir = {
                       enable = true;
@@ -169,19 +170,17 @@
                 (
                   { pkgs, lib, ... }:
                   {
-                    packages = with pkgs; [
-                      exercism
-
-                      # .Net
-                      icu
-                      netcoredbg
-                      fsautocomplete
-                      fantomas
-                    ];
+                    packages =
+                      with pkgs;
+                      [
+                        icu
+                        fsautocomplete
+                        fantomas
+                      ]
+                      ++ defaultApps;
 
                     languages.dotnet = {
                       enable = true;
-                      package = dotnet_8;
                     };
 
                     enterShell = ''
@@ -201,9 +200,7 @@
                 (
                   { pkgs, lib, ... }:
                   {
-                    packages = with pkgs; [
-                      exercism
-                    ];
+                    packages = defaultApps;
 
                     languages.gleam = {
                       enable = true;
@@ -226,9 +223,7 @@
                 (
                   { pkgs, lib, ... }:
                   {
-                    packages = with pkgs; [
-                      exercism
-                    ];
+                    packages = defaultApps;
 
                     languages.haskell = {
                       enable = true;
