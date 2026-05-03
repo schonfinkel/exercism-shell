@@ -1,249 +1,44 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+
+    flake-parts.url = "github:hercules-ci/flake-parts";
+
     devenv = {
       url = "github:cachix/devenv";
       inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    flake-parts = {
-      url = "github:hercules-ci/flake-parts";
     };
 
     treefmt-nix.url = "github:numtide/treefmt-nix";
   };
 
   outputs =
-    inputs@{
-      self,
-      flake-parts,
-      nixpkgs,
-      devenv,
-      treefmt-nix,
-      ...
-    }:
+    inputs@{ flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       systems = [
         "x86_64-linux"
         "aarch64-linux"
         "aarch64-darwin"
-        "x86_64-darwin"
       ];
+
+      imports = [
+        inputs.devenv.flakeModule
+        inputs.treefmt-nix.flakeModule
+        ./elixir/flake-module.nix
+        ./erlang/flake-module.nix
+        ./fsharp/flake-module.nix
+        ./gleam/flake-module.nix
+        ./haskell/flake-module.nix
+        ./rust/flake-module.nix
+      ];
+
       perSystem =
-        { pkgs, system, ... }:
-        let
-          defaultApps = with pkgs; [ exercism ];
-
-          # Elixir
-          getElixirLibs =
-            elixirLsPkg:
-            let
-              elixirLsPath = "${elixirLsPkg}/bin";
-              launcher = "${elixirLsPath}/elixir-ls";
-            in
-            {
-              path = elixirLsPath;
-              launcher = launcher;
-            };
-
-          mkElixirEnvVars = pkgs: elixirLibs: {
-            LOCALE_ARCHIVE = pkgs.lib.optionalString pkgs.stdenv.isLinux "${pkgs.glibcLocales}/lib/locale/locale-archive";
-            LANG = "en_US.UTF-8";
-            # Language Server
-            ELIXIR_LS_PATH = elixirLibs.launcher;
-          };
-
-          elixirLibs = getElixirLibs pkgs.elixir-ls;
-
-          treefmtEval = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
-
-        in
+        { system, ... }:
         {
-          # This sets `pkgs` to a nixpkgs with allowUnfree option set.
-          _module.args.pkgs = import nixpkgs {
+          _module.args.pkgs = import inputs.nixpkgs {
             inherit system;
             config.allowUnfree = true;
           };
-
-          # nix develop
-          devShells = {
-            # Rust environemnt support
-            # nix develop .#rust
-            rust = devenv.lib.mkShell {
-              inherit inputs pkgs;
-              modules = [
-                (
-                  { pkgs, lib, ... }:
-                  {
-                    packages =
-                      with pkgs;
-                      [
-                        rust-analyzer
-                        clippy
-                        rustfmt
-                        cargo-watch
-                      ]
-                      ++ defaultApps;
-
-                    languages.rust = {
-                      enable = true;
-                    };
-
-                    enterShell = ''
-                      echo "Starting Rust environment..."
-                      rustc --version
-                      cargo --version
-                      exercism version
-                    '';
-                  }
-                )
-              ];
-
-            };
-
-            # Erlang Environment
-            # `nix develop .#erlang`
-            erlang = devenv.lib.mkShell {
-              inherit inputs pkgs;
-              modules = [
-                (
-                  { pkgs, lib, ... }:
-                  {
-                    packages =
-                      with pkgs;
-                      [
-                        erlang-language-platform
-                        erlfmt
-                        rebar3
-                        watchman
-                      ]
-                      ++ defaultApps;
-
-                    languages.erlang = {
-                      enable = true;
-                    };
-
-                    enterShell = ''
-                      echo "Starting Erlang environment..."
-                      exercism version
-                    '';
-                  }
-                )
-              ];
-            };
-
-            # Elixir Environment
-            # `nix develop .#elixir`
-            elixir = devenv.lib.mkShell {
-              inherit inputs pkgs;
-              modules = [
-                (
-                  { pkgs, lib, ... }:
-                  {
-                    packages =
-                      with pkgs;
-                      [
-                        elixir-ls
-                      ]
-                      ++ defaultApps;
-
-                    languages.elixir = {
-                      enable = true;
-                    };
-
-                    env = mkElixirEnvVars pkgs elixirLibs;
-
-                    enterShell = ''
-                      echo "Starting Elixir environment..."
-                      exercism version
-                    '';
-                  }
-                )
-              ];
-            };
-
-            # F# Environment
-            # `nix develop .#fsharp`
-            fsharp = devenv.lib.mkShell {
-              inherit inputs pkgs;
-              modules = [
-                (
-                  { pkgs, lib, ... }:
-                  {
-                    packages =
-                      with pkgs;
-                      [
-                        icu
-                        fsautocomplete
-                        fantomas
-                      ]
-                      ++ defaultApps;
-
-                    languages.dotnet = {
-                      enable = true;
-                    };
-
-                    enterShell = ''
-                      echo "Starting F# environment..."
-                      exercism version
-                    '';
-                  }
-                )
-              ];
-            };
-
-            # Gleam Environment
-            # `nix develop .#gleam`
-            gleam = devenv.lib.mkShell {
-              inherit inputs pkgs;
-              modules = [
-                (
-                  { pkgs, lib, ... }:
-                  {
-                    packages = defaultApps;
-
-                    languages.gleam = {
-                      enable = true;
-                    };
-
-                    enterShell = ''
-                      echo "Starting Gleam environment..."
-                      exercism version
-                    '';
-                  }
-                )
-              ];
-            };
-
-            # Haskell Environment
-            # `nix develop .#haskell`
-            haskell = devenv.lib.mkShell {
-              inherit inputs pkgs;
-              modules = [
-                (
-                  { pkgs, lib, ... }:
-                  {
-                    packages = defaultApps;
-
-                    languages.haskell = {
-                      enable = true;
-                    };
-
-                    enterShell = ''
-                      echo "Starting Haskell environment..."
-                      exercism version
-                    '';
-                  }
-                )
-              ];
-            };
-          };
-
-          # nix fmt
-          formatter = treefmtEval.config.build.wrapper;
         };
-
-      flake = {
-      };
     };
 }

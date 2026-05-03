@@ -8,19 +8,24 @@ result
 erlang/*
 !erlang/.gitignore
 !erlang/.envrc
+!erlang/flake-module.nix
 
 elixir/*
 !elixir/.gitignore
 !elixir/.envrc
+!elixir/flake-module.nix
 
 fsharp/*
 !fsharp/.gitignore
 !fsharp/.envrc
+!fsharp/flake-module.nix
 
 gleam/*
 !gleam/.gitignore
 !gleam/.envrc
+!gleam/flake-module.nix
 
 haskell/*
 !haskell/.gitignore
 !haskell/.envrc
+!haskell/flake-module.nix
