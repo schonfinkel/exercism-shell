@@ -1,9 +1,12 @@
-name: Update flake.lock
+name: "[Nix] Update flake.lock"
 on:
-  workflow_dispatch: # allows manual triggering
+  workflow_dispatch:
   schedule:
-    # Update every Wednesday
-    - cron: "51 3 * * 3"
+    - cron: '0 4 1 * *'
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
   update-lockfile:
@@ -18,7 +21,7 @@ jobs:
       - name: Update flake.lock
         uses: DeterminateSystems/update-flake-lock@main
         with:
-          pr-title: "Update flake.lock"
+          pr-title: "[Nix] Update flake.lock"
           pr-labels: |
             dependencies
             automation
